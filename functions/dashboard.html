@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QYMail Security Dashboard</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: #0f2027;
+      color: white;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 20px 30px;
+      background: #111;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+
+    .user-info {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .container {
+      padding: 30px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+    }
+
+    .login-btn {
+      padding: 12px 24px;
+      border-radius: 25px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      background: white;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    th {
+      color: #00ff9c;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .risk-HIGH { color: #ff4d4d; font-weight: bold; }
+    .risk-MEDIUM { color: #ffb84d; font-weight: bold; }
+    .risk-LOW { color: #7CFFB2; font-weight: bold; }
+    .risk-NONE { color: #cccccc; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>QYMail • Security Dashboard</h1>
+  <div class="user-info" id="userInfo">Not logged in</div>
+</header>
+
+<div class="container">
+
+  <div class="card" id="loginCard">
+    <h2>Authentication</h2>
+    <p>Please sign in to view security intelligence.</p>
+    <button id="loginBtn" class="login-btn">Login with Google</button>
+  </div>
+
+  <div class="card" id="dashboardCard" style="display:none;">
+    <h2>Threat Profiles</h2>
+    <p>Aggregated security risk per actor (read-only).</p>
+
+    <table id="profilesTable">
+      <thead>
+        <tr>
+          <th>Actor</th>
+          <th>Risk</th>
+          <th>Total</th>
+          <th>High</th>
+          <th>Medium</th>
+          <th>Low</th>
+          <th>Last Seen</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    onAuthStateChanged,
+    connectAuthEmulator
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    connectFirestoreEmulator
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNLBUDQJiwkCg_62UTjSyYAi3nLYlXQzQ",
+    authDomain: "qymail.firebaseapp.com",
+    projectId: "qymail"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  connectAuthEmulator(auth, "http://127.0.0.1:9099");
+  const db = getFirestore(app);
+
+  /* ===============================
+     🔧 EMULATOR FIX (CRITICAL)
+     =============================== */
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+
+  const provider = new GoogleAuthProvider();
+
+  const loginBtn = document.getElementById("loginBtn");
+  const loginCard = document.getElementById("loginCard");
+  const dashboardCard = document.getElementById("dashboardCard");
+  const userInfo = document.getElementById("userInfo");
+  const profilesTableBody = document.querySelector("#profilesTable tbody");
+
+  loginBtn.onclick = async () => {
+    await signInWithPopup(auth, provider);
+  };
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      userInfo.innerText = user.email;
+      loginCard.style.display = "none";
+      dashboardCard.style.display = "block";
+
+      const snapshot = await getDocs(
+        collection(db, "qymailThreatProfiles")
+      );
+      console.log("Profiles count:", snapshot.size);
+      snapshot.forEach(d => console.log("PROFILE:", d.id, d.data()));
+
+
+      profilesTableBody.innerHTML = "";
+
+      snapshot.forEach((doc) => {
+        const p = doc.data();
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${p.actor}</td>
+          <td class="risk-${p.currentRisk}">${p.currentRisk}</td>
+          <td>${p.totalEvents}</td>
+          <td>${p.highThreatCount}</td>
+          <td>${p.mediumThreatCount}</td>
+          <td>${p.lowThreatCount}</td>
+          <td>${new Date(p.lastSeen).toLocaleString()}</td>
+        `;
+
+        profilesTableBody.appendChild(row);
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

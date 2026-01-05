@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QYMail Security Dashboard</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: #0f2027;
+      color: white;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 20px 30px;
+      background: #111;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+
+    .user-info {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .container {
+      padding: 30px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+    }
+
+    .login-btn {
+      padding: 12px 24px;
+      border-radius: 25px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      background: white;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    th {
+      color: #00ff9c;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,0.05);
+      cursor: pointer;
+    }
+
+    .risk-HIGH { color: #ff4d4d; font-weight: bold; }
+    .risk-MEDIUM { color: #ffb84d; font-weight: bold; }
+    .risk-LOW { color: #7CFFB2; font-weight: bold; }
+    .risk-NONE { color: #cccccc; }
+
+    .selected-row {
+      background: rgba(0,255,156,0.15) !important;
+    }
+
+    .ai-btn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(90deg, #00f5ff, #00ff9c);
+      color: #003333;
+      font-weight: 600;
+    }
+
+    .ai-output {
+      margin-top: 15px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      color: #7CFFB2;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>QYMail • Security Dashboard</h1>
+  <div class="user-info" id="userInfo">Not logged in</div>
+</header>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+    <h2>Authentication</h2>
+    <p>Please sign in to view security intelligence.</p>
+    <button id="loginBtn" class="login-btn">Login with Google</button>
+  </div>
+
+  <!-- THREAT PROFILES -->
+  <div class="card" id="dashboardCard" style="display:none;">
+    <h2>Threat Profiles</h2>
+    <p>Aggregated security risk per actor (read-only).</p>
+
+    <table id="profilesTable">
+      <thead>
+        <tr>
+          <th>Actor</th>
+          <th>Risk</th>
+          <th>Total</th>
+          <th>High</th>
+          <th>Medium</th>
+          <th>Low</th>
+          <th>Last Seen</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- EVENT TIMELINE -->
+  <div class="card" id="eventsCard" style="display:none;">
+    <h2>Threat Event Timeline</h2>
+    <p>Chronological security events (read-only).</p>
+
+    <table id="eventsTable">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Actor</th>
+          <th>Event</th>
+          <th>Threat</th>
+          <th>Session</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- PHASE 9.1 -->
+  <div class="card" id="aiNarrativeCard" style="display:none;">
+    <h2>🧠 AI Threat Narrative</h2>
+    <button id="generateAiBtn" class="ai-btn">Generate AI Summary</button>
+    <div id="aiOutput" class="ai-output"></div>
+  </div>
+
+  <!-- PHASE 9.2 -->
+  <div class="card" id="aiRiskCard" style="display:none;">
+    <h2>🧠 AI Risk Justification</h2>
+    <button id="explainRiskBtn" class="ai-btn">Explain Selected Actor Risk</button>
+    <div id="riskAiOutput" class="ai-output"></div>
+
+    <!-- =================================================
+         PHASE 9.3 ADDITION (ONLY THIS IS NEW)
+         ================================================= -->
+    <button id="explainImpactBtn" class="ai-btn">
+      Explain Security Impact
+    </button>
+    <div id="impactAiOutput" class="ai-output"></div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    onAuthStateChanged,
+    connectAuthEmulator
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    orderBy,
+    connectFirestoreEmulator
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNLBUDQJiwkCg_62UTjSyYAi3nLYlXQzQ",
+    authDomain: "qymail.firebaseapp.com",
+    projectId: "qymail"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  connectAuthEmulator(auth, "http://127.0.0.1:9099");
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+
+  const provider = new GoogleAuthProvider();
+
+  const loginBtn = document.getElementById("loginBtn");
+  const loginCard = document.getElementById("loginCard");
+  const dashboardCard = document.getElementById("dashboardCard");
+  const eventsCard = document.getElementById("eventsCard");
+  const aiNarrativeCard = document.getElementById("aiNarrativeCard");
+  const aiRiskCard = document.getElementById("aiRiskCard");
+  const userInfo = document.getElementById("userInfo");
+
+  const profilesTableBody = document.querySelector("#profilesTable tbody");
+  const eventsTableBody = document.querySelector("#eventsTable tbody");
+
+  const generateAiBtn = document.getElementById("generateAiBtn");
+  const explainRiskBtn = document.getElementById("explainRiskBtn");
+  const explainImpactBtn = document.getElementById("explainImpactBtn");
+
+  const aiOutput = document.getElementById("aiOutput");
+  const riskAiOutput = document.getElementById("riskAiOutput");
+  const impactAiOutput = document.getElementById("impactAiOutput");
+
+  let cachedEvents = [];
+  let selectedProfile = null;
+
+  loginBtn.onclick = async () => {
+    await signInWithPopup(auth, provider);
+  };
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+
+    userInfo.innerText = user.email;
+    loginCard.style.display = "none";
+    dashboardCard.style.display = "block";
+    eventsCard.style.display = "block";
+    aiNarrativeCard.style.display = "block";
+    aiRiskCard.style.display = "block";
+
+    const profilesSnap = await getDocs(collection(db, "qymailThreatProfiles"));
+    profilesTableBody.innerHTML = "";
+
+    profilesSnap.forEach(doc => {
+      const p = doc.data();
+      const row = document.createElement("tr");
+
+      row.onclick = () => {
+        document
+          .querySelectorAll("#profilesTable tr")
+          .forEach(r => r.classList.remove("selected-row"));
+
+        row.classList.add("selected-row");
+        selectedProfile = p;
+        riskAiOutput.innerText = "";
+        impactAiOutput.innerText = "";
+      };
+
+      row.innerHTML = `
+        <td>${p.actor}</td>
+        <td class="risk-${p.currentRisk}">${p.currentRisk}</td>
+        <td>${p.totalEvents}</td>
+        <td>${p.highThreatCount}</td>
+        <td>${p.mediumThreatCount}</td>
+        <td>${p.lowThreatCount}</td>
+        <td>${new Date(p.lastSeen).toLocaleString()}</td>
+      `;
+      profilesTableBody.appendChild(row);
+    });
+
+    const eventsQuery = query(
+      collection(db, "qymailThreatLogs"),
+      orderBy("timestamp", "desc")
+    );
+
+    const eventsSnap = await getDocs(eventsQuery);
+    eventsTableBody.innerHTML = "";
+    cachedEvents = [];
+
+    eventsSnap.forEach(doc => {
+      const e = doc.data();
+      cachedEvents.push(e);
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${new Date(e.timestamp).toLocaleString()}</td>
+        <td>${e.actor}</td>
+        <td>${e.eventType}</td>
+        <td class="risk-${e.threatLevel || "NONE"}">${e.threatLevel || "NONE"}</td>
+        <td>${e.sessionId || "-"}</td>
+      `;
+      eventsTableBody.appendChild(row);
+    });
+  });
+
+  // PHASE 9.1
+  generateAiBtn.onclick = async () => {
+    aiOutput.innerText = "Analyzing events with AI...";
+
+    const prompt = `
+Explain these security events factually.
+${JSON.stringify(cachedEvents.slice(0, 10), null, 2)}
+Return plain text only. Do not use markdown, bullets, asterisks, or formatting.
+`;
+
+    const res = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": "AIzaSyDJMXhRRy6hEY9U237L3rNMBHJ3BaQU_2k"
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
+
+    const data = await res.json();
+    aiOutput.innerText =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "AI could not generate a summary.";
+  };
+
+  // PHASE 9.2
+  explainRiskBtn.onclick = async () => {
+    if (!selectedProfile) {
+      riskAiOutput.innerText = "Please select an actor first.";
+      return;
+    }
+
+    const prompt = `
+Explain why this actor has the given risk level.
+${JSON.stringify(selectedProfile, null, 2)}
+Return plain text only. Do not use markdown, bullets, asterisks, or formatting.
+`;
+
+    const res = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": "AIzaSyDJMXhRRy6hEY9U237L3rNMBHJ3BaQU_2k"
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
+
+    const data = await res.json();
+    riskAiOutput.innerText =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "AI could not explain the risk.";
+  };
+
+  /* =====================================================
+     PHASE 9.3 — SECURITY IMPACT (ONLY NEW LOGIC)
+     ===================================================== */
+  explainImpactBtn.onclick = async () => {
+    if (!selectedProfile) {
+      impactAiOutput.innerText = "Please select an actor first.";
+      return;
+    }
+
+    impactAiOutput.innerText = "Analyzing security impact...";
+
+    const prompt = `
+Explain the SECURITY and BUSINESS impact of this actor's activity.
+Base reasoning ONLY on this data.
+
+${JSON.stringify(selectedProfile, null, 2)}
+Return plain text only. Do not use markdown, bullets, asterisks, or formatting.
+
+`;
+
+    const res = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": "AIzaSyDJMXhRRy6hEY9U237L3rNMBHJ3BaQU_2k"
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
+
+    const data = await res.json();
+    impactAiOutput.innerText =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "AI could not explain the security impact.";
+  };
+</script>
+
+</body>
+</html>

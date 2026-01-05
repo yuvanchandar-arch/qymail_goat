@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QYMail</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      height: 100vh;
+    }
+
+    .center-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 25px;
+    }
+
+    .logo {
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      background: linear-gradient(90deg, #00f5ff, #00ff9c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .google-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 26px;
+      font-size: 18px;
+      border-radius: 30px;
+      background: white;
+      color: #444;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .google-btn img {
+      width: 22px;
+      height: 22px;
+    }
+
+    .top-bar {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+    }
+
+    .logout-btn {
+      padding: 10px 18px;
+      border-radius: 20px;
+      border: none;
+      background: #ff4d4d;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .secure-section {
+      margin-top: 30px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      width: 320px;
+    }
+
+    .secure-section input,
+    .secure-section textarea {
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: none;
+      width: 100%;
+      font-size: 15px;
+      resize: none;
+    }
+
+    .secure-section textarea {
+      height: 100px;
+    }
+
+    .secure-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 30px;
+      background: linear-gradient(90deg, #ff8a00, #ffdd00);
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: #333;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .secure-btn img {
+      width: 24px;
+      height: 24px;
+    }
+
+    .status {
+      font-size: 14px;
+      color: #7CFFB2;
+      white-space: pre-wrap;
+      text-align: left;
+      max-width: 420px;
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="top-bar">
+    <button id="logoutBtn" class="logout-btn" style="display:none;">Logout</button>
+  </div>
+
+  <div class="center-container">
+    <div class="logo">QYMAIL</div>
+
+    <button id="loginBtn" class="google-btn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" />
+      Login with Google
+    </button>
+
+    <div id="secureSection" class="secure-section">
+      <input id="receiverEmail" type="email" placeholder="Receiver email" />
+      <textarea id="message" placeholder="Type your secure email here..."></textarea>
+
+      <button id="secureBtn" class="secure-btn">
+        <img src="https://cdn-icons-png.flaticon.com/512/1047/1047711.png" />
+        Send Quantum-Secure Mail
+      </button>
+    </div>
+
+    <!-- PHASE 7: RECEIVER DECRYPTION -->
+    <div id="decryptSection" class="secure-section" style="display:none;">
+      <input id="sessionIdInput" placeholder="Session ID (QY-xxxx)" />
+      <input id="ivInput" placeholder="IV (hex)" />
+      <input id="cipherInput" placeholder="Ciphertext (hex)" />
+
+      <button id="decryptBtn" class="secure-btn">
+        🔓 Decrypt Secure Mail
+      </button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNLBUDQJiwkCg_62UTjSyYAi3nLYlXQzQ",
+    authDomain: "qymail.firebaseapp.com",
+    projectId: "qymail"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const secureBtn = document.getElementById("secureBtn");
+  const decryptBtn = document.getElementById("decryptBtn");
+  const status = document.getElementById("status");
+
+  loginBtn.onclick = async () => {
+    await signInWithPopup(auth, provider);
+  };
+
+  logoutBtn.onclick = async () => {
+    await signOut(auth);
+    location.reload();
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      status.innerText = "Logged in ✔️";
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "block";
+      secureSection.style.display = "flex";
+      decryptSection.style.display = "flex";
+    }
+  });
+
+  secureBtn.onclick = async () => {
+    const token = await auth.currentUser.getIdToken(true);
+    const receiver = receiverEmail.value;
+    const message = document.getElementById("message").value;
+
+    const res = await fetch(
+      "http://127.0.0.1:5001/qymail/us-central1/requestSecureSession",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ receiver, message })
+      }
+    );
+
+    status.innerText = JSON.stringify(await res.json(), null, 2);
+  };
+
+  // 🔧 ONLY FIX IS HERE — NOTHING ELSE TOUCHED
+  decryptBtn.onclick = async () => {
+    const token = await auth.currentUser.getIdToken(true);
+
+    const sessionId = sessionIdInput.value.trim();
+    const iv = ivInput.value.trim();
+    const ciphertext = cipherInput.value.trim();
+
+    if (!sessionId || !iv || !ciphertext) {
+      status.innerText = "❌ Please fill Session ID, IV and Ciphertext";
+      return;
+    }
+
+    const res = await fetch(
+      "http://127.0.0.1:5001/qymail/us-central1/decryptSecureEmail",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ sessionId, iv, ciphertext })
+      }
+    );
+
+    status.innerText = JSON.stringify(await res.json(), null, 2);
+  };
+</script>
+
+</body>
+</html>
