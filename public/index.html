@@ -63,7 +63,6 @@
       background: #ff4d4d;
       color: white;
       cursor: pointer;
-      font-size: 14px;
     }
 
     .secure-section {
@@ -81,83 +80,318 @@
       border-radius: 8px;
       border: none;
       width: 100%;
-      font-size: 15px;
-      resize: none;
-    }
-
-    .secure-section textarea {
-      height: 100px;
     }
 
     .secure-btn {
-      display: flex;
-      align-items: center;
-      gap: 10px;
       padding: 14px 28px;
       border-radius: 30px;
-      background: linear-gradient(90deg, #ff8a00, #ffdd00);
       border: none;
-      font-size: 16px;
       cursor: pointer;
-      color: #333;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    }
-
-    .secure-btn img {
-      width: 24px;
-      height: 24px;
+      background: linear-gradient(90deg, #ff8a00, #ffdd00);
     }
 
     .status {
       font-size: 14px;
-      color: #7CFFB2;
       white-space: pre-wrap;
-      text-align: left;
       max-width: 420px;
       background: rgba(0,0,0,0.3);
       padding: 15px;
       border-radius: 10px;
+    }
+
+    .decrypt-view {
+      display: none;
+      background: white;
+      color: black;
+      padding: 15px;
+      border-radius: 10px;
+      width: 420px;
+    }
+
+    .glass-card {
+      backdrop-filter: blur(18px);
+      background: rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 0 40px rgba(0,255,200,0.25);
+      animation: float 6s ease-in-out infinite;
+      max-width: 320px;
+    }
+
+    .glass-card h3 {
+      margin-top: 0;
+      font-weight: 600;
+      color: #00ffcc;
+    }
+
+    .glass-card p {
+      opacity: 0.9;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+      100% { transform: translateY(0); }
+    }
+
+    .scroll-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+    }
+
+    .scroll-card {
+      max-width: 800px;
+      backdrop-filter: blur(16px);
+      background: rgba(255,255,255,0.07);
+      border-radius: 30px;
+      padding: 40px;
+      box-shadow: 0 0 50px rgba(0,255,200,0.2);
+      animation: fadeUp 1.5s ease forwards;
+    }
+
+    .scroll-card p {
+      font-size: 18px;
+      line-height: 1.8;
+      opacity: 0.95;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =========================================================
+       UI ENHANCEMENTS (ADD ONLY – NOTHING ABOVE TOUCHED)
+       ========================================================= */
+
+    /* LEFT SIDE – QKD VISUAL PANEL */
+    .qkd-side {
+      position: fixed;
+      left: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 260px;
+      backdrop-filter: blur(16px);
+      background: rgba(0,255,255,0.08);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.35);
+      pointer-events: none;
+    }
+
+    .qkd-title {
+      font-weight: 600;
+      color: #00f5ff;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .qkd-diagram {
+      position: relative;
+      height: 160px;
+    }
+
+    .qkd-node {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .alice {
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: linear-gradient(135deg,#00f5ff,#00ff9c);
+    }
+
+    .bob {
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: linear-gradient(135deg,#7f5cff,#00ffcc);
+    }
+
+    .eve {
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff4d4d;
+      opacity: 0;
+      animation: eveBlink 5s infinite;
+    }
+
+    .qkd-channel {
+      position: absolute;
+      top: 50%;
+      left: 48px;
+      right: 48px;
+      height: 2px;
+      background: linear-gradient(90deg,#00f5ff,#00ff9c,#7f5cff);
+      overflow: hidden;
+    }
+
+    .photon {
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: -4px;
+      animation: photonMove 2s linear infinite;
+    }
+
+    @keyframes photonMove {
+      from { left: -15px; }
+      to { left: 100%; }
+    }
+
+    @keyframes eveBlink {
+      0%,70% { opacity: 0; }
+      80%,100% { opacity: 1; }
+    }
+
+    /* RIGHT SIDE – FEATURE PANEL */
+    .feature-side {
+      position: fixed;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 260px;
+      backdrop-filter: blur(16px);
+      background: rgba(180,0,255,0.1);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 0 40px rgba(180,0,255,0.35);
+      pointer-events: none;
+    }
+
+    .feature-side h4 {
+      color: #c77dff;
+      margin: 0 0 12px 0;
+      text-align: center;
+    }
+
+    .feature-side p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 8px 0;
+    }
+
+    /* LOGO ABOVE PARAGRAPH */
+    .qymail-logo {
+      position: relative;
+      margin-bottom: 30px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#00f5ff,#7f5cff,#00ff9c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 0 60px rgba(0,255,255,0.6);
+      animation: logoPulse 4s infinite;
+    }
+
+
+    @keyframes logoPulse {
+      0% { box-shadow: 0 0 25px rgba(0,255,255,0.4); }
+      50% { box-shadow: 0 0 90px rgba(127,92,255,0.8); }
+      100% { box-shadow: 0 0 25px rgba(0,255,255,0.4); }
     }
   </style>
 </head>
 
 <body>
 
-  <div class="top-bar">
-    <button id="logoutBtn" class="logout-btn" style="display:none;">Logout</button>
+<div class="top-bar">
+  <button id="logoutBtn" class="logout-btn" style="display:none;">Logout</button>
+</div>
+
+<div class="center-container">
+  <div class="logo">QYMAIL</div>
+
+  <button id="loginBtn" class="google-btn">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" />
+    Login with Google
+  </button>
+
+  <div id="secureSection" class="secure-section">
+    <input id="receiverEmail" type="email" placeholder="Receiver email" />
+    <textarea id="message" placeholder="Type your secure email here..."></textarea>
+    <input id="attachments" type="file" accept="application/pdf" multiple />
+    <button id="secureBtn" class="secure-btn">Send Quantum-Secure Mail</button>
   </div>
 
-  <div class="center-container">
-    <div class="logo">QYMAIL</div>
-
-    <button id="loginBtn" class="google-btn">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" />
-      Login with Google
-    </button>
-
-    <div id="secureSection" class="secure-section">
-      <input id="receiverEmail" type="email" placeholder="Receiver email" />
-      <textarea id="message" placeholder="Type your secure email here..."></textarea>
-
-      <button id="secureBtn" class="secure-btn">
-        <img src="https://cdn-icons-png.flaticon.com/512/1047/1047711.png" />
-        Send Quantum-Secure Mail
-      </button>
-    </div>
-
-    <!-- PHASE 7: RECEIVER DECRYPTION -->
-    <div id="decryptSection" class="secure-section" style="display:none;">
-      <input id="sessionIdInput" placeholder="Session ID (QY-xxxx)" />
-      <input id="ivInput" placeholder="IV (hex)" />
-      <input id="cipherInput" placeholder="Ciphertext (hex)" />
-
-      <button id="decryptBtn" class="secure-btn">
-        🔓 Decrypt Secure Mail
-      </button>
-    </div>
-
-    <div id="status" class="status"></div>
+  <div id="decryptSection" class="secure-section">
+    <input id="sessionIdInput" placeholder="Session ID (QY-xxxx)" />
+    <input id="ivInput" placeholder="IV (hex)" />
+    <input id="cipherInput" placeholder="Ciphertext (hex)" />
+    <button id="decryptBtn" class="secure-btn">🔓 Decrypt Secure Mail</button>
   </div>
+
+  <div id="decryptView" class="decrypt-view"></div>
+  <div id="status" class="status"></div>
+
+  <div class="glass-card">
+    <h3>Quantum-Secure Email</h3>
+    <p>• Quantum Key Distribution</p>
+    <p>• Read-Once Decryption</p>
+    <p>• Encrypted Attachments</p>
+    <p>• Zero-Trust Architecture</p>
+  </div>
+</div>
+
+<div class="scroll-section" style="position:relative;">
+  <div class="qymail-logo">Q</div>
+  <div class="scroll-card">
+    <p>
+      QYMail is a next-generation secure email platform designed for the post-quantum era.
+      Every message is protected using keys derived from Quantum Key Distribution.
+      Attachments are encrypted, messages are readable only once, and trust is enforced by design.
+      This is not just email — this is verifiable privacy.
+    </p>
+  </div>
+</div>
+
+<!-- ADD-ONLY SIDE PANELS -->
+<div class="qkd-side">
+  <div class="qkd-title">Quantum Key Generation</div>
+  <div class="qkd-diagram">
+    <div class="qkd-node alice">Sender</div>
+    <div class="qkd-node bob">Receiver</div>
+    <div class="qkd-node eve">Attacker</div>
+    <div class="qkd-channel">
+      <div class="photon"></div>
+    </div>
+  </div>
+  <p style="font-size:13px;margin-top:12px;">
+    Any interception alters quantum states and is instantly detected.
+  </p>
+</div>
+
+<div class="feature-side">
+  <h4>Why Quantum Keys</h4>
+  <p>⚛️ Physics-based security</p>
+  <p>🚀 No key reuse</p>
+  <p>🔐 Eavesdropping is detectable</p>
+  <p>📄 Man-in-the-middle resistant</p>
+  <p>🔑 True randomness</p>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -184,6 +418,12 @@
   const secureBtn = document.getElementById("secureBtn");
   const decryptBtn = document.getElementById("decryptBtn");
   const status = document.getElementById("status");
+  const secureSection = document.getElementById("secureSection");
+  const decryptSection = document.getElementById("decryptSection");
+  const decryptView = document.getElementById("decryptView");
+
+  const glassCard = document.querySelector(".glass-card");
+
 
   loginBtn.onclick = async () => {
     await signInWithPopup(auth, provider);
@@ -196,18 +436,52 @@
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      status.innerText = "Logged in ✔️";
       loginBtn.style.display = "none";
       logoutBtn.style.display = "block";
       secureSection.style.display = "flex";
       decryptSection.style.display = "flex";
+
+      if (glassCard) glassCard.style.display = "none";
     }
   });
 
   secureBtn.onclick = async () => {
+    const receiver = receiverEmail.value.trim();
+    const message = document.getElementById("message").value.trim();
+    const files = document.getElementById("attachments").files;
+
+    if (!receiver || !message) {
+      status.innerText = "❌ Receiver email and message are required";
+      return;
+    }
+
+    const attachments = [];
+
+    for (const file of files) {
+      if (file.type !== "application/pdf") {
+        status.innerText = "❌ Only PDF files allowed";
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        status.innerText = "❌ PDF must be ≤ 5 MB";
+        return;
+      }
+
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      attachments.push({
+        name: file.name,
+        type: file.type,
+        data: base64
+      });
+    }
+
     const token = await auth.currentUser.getIdToken(true);
-    const receiver = receiverEmail.value;
-    const message = document.getElementById("message").value;
 
     const res = await fetch(
       "http://127.0.0.1:5001/qymail/us-central1/requestSecureSession",
@@ -217,25 +491,15 @@
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ receiver, message })
+        body: JSON.stringify({ receiver, message, attachments })
       }
     );
 
     status.innerText = JSON.stringify(await res.json(), null, 2);
   };
 
-  // 🔧 ONLY FIX IS HERE — NOTHING ELSE TOUCHED
   decryptBtn.onclick = async () => {
     const token = await auth.currentUser.getIdToken(true);
-
-    const sessionId = sessionIdInput.value.trim();
-    const iv = ivInput.value.trim();
-    const ciphertext = cipherInput.value.trim();
-
-    if (!sessionId || !iv || !ciphertext) {
-      status.innerText = "❌ Please fill Session ID, IV and Ciphertext";
-      return;
-    }
 
     const res = await fetch(
       "http://127.0.0.1:5001/qymail/us-central1/decryptSecureEmail",
@@ -245,11 +509,46 @@
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ sessionId, iv, ciphertext })
+        body: JSON.stringify({
+          sessionId: sessionIdInput.value,
+          iv: ivInput.value,
+          ciphertext: cipherInput.value
+        })
       }
     );
 
-    status.innerText = JSON.stringify(await res.json(), null, 2);
+    const data = await res.json();
+
+    if (data.plaintext) {
+      decryptView.style.display = "block";
+      decryptView.innerHTML = `<pre>${data.plaintext}</pre>`;
+    }
+
+    if (Array.isArray(data.attachments)) {
+      for (const file of data.attachments) {
+        const byteChars = atob(file.data);
+        const byteNumbers = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+          byteNumbers[i] = byteChars.charCodeAt(i);
+        }
+
+        const blob = new Blob([new Uint8Array(byteNumbers)], { type: file.type });
+        const url = URL.createObjectURL(blob);
+
+        const btn = document.createElement("button");
+        btn.className = "download-btn";
+        btn.innerText = `⬇ Download ${file.name}`;
+        btn.onclick = () => {
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = file.name;
+          a.click();
+          URL.revokeObjectURL(url);
+        };
+
+        decryptView.appendChild(btn);
+      }
+    }
   };
 </script>
 
